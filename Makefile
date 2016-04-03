@@ -1,9 +1,12 @@
+ANTLR = /lib/antlr-4.5.2-complete.jar
+CP = $(ANTLR):.
+
 all:
-	antlr4 -no-listener -no-visitor *.g4
-	javac *.java
+	java -jar $(ANTLR) -no-listener -no-visitor *.g4
+	javac -cp $(CP) *.java
 
 run:
-	@java -cp C:\libs\antlr-4.5.2-complete.jar;. SimpleCompiler inputfile
+	@java -cp $(CP) SimpleCompiler < inputfile
 
 clean:
-	del *.java *.tokens *.class
+	rm -rf *.java *.tokens *.class

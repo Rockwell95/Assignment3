@@ -11,13 +11,13 @@ grammar Simple;
  	public SimpleParser(String fileName) throws java.io.IOException {
 	    super(new CommonTokenStream(new SimpleLexer(new ANTLRFileStream(fileName))));
 	    _interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
-	    projectName = fileName;
+	    projectName = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.lastIndexOf('.'));
 	}
-  
+
   	public String getProjectName() {
     return projectName;
   	}
-	
+
 	public static int varNumber = 0;
 	public static int loop_counter = 0;
 	public static TreeMap<String, Integer> varID = new TreeMap<String, Integer>();
@@ -36,44 +36,44 @@ prog returns [String sProg]
 	;
 
 expr returns [String sExpr]
-  	: term '+' NUM 
+  	: '('? term ')'? '+' NUM
   	{
-  		$sExpr = "iload " + $term.sTerm + "\n\tldc " + $NUM.getText() + "\n\tiadd\n";
+  		$sExpr = $term.sTerm + "\n\tldc " + $NUM.getText() + "\n\tiadd\n";
   	}
-	| t1 = term '+' t2=term
+	| '('? t1 = term ')'? '+' t2=term
 	{
-		$sExpr = "iload " + $t1.sTerm + "\n\tiload " + $t2.sTerm + "\n\tiadd\n";
+		$sExpr = $t1.sTerm + "\n\t" + $t2.sTerm + "\n\tiadd\n";
 	}
-	| term '+' m2=expr
+	| '('? term ')'? '+' m2=expr
 	{
-		$sExpr = "iload " + $term.sTerm + "\n\tiload " + varID.get($m2.sExpr) + "\n\tiadd\n";
+		$sExpr = $term.sTerm + "\n\t" + varID.get($m2.sExpr) + "\n\tiadd\n";
 	}
-	| term '-' NUM
+	| '('? term ')'? '-' NUM
 	{
-		$sExpr = "iload " + $term.sTerm + "\n\tldc " + $NUM.getText() + "\n\tisub\n";
+		$sExpr = $term.sTerm + "\n\t" + $NUM.getText() + "\n\tisub\n";
 	}
-	| t1 = term '-' t2=term
+	| '('? t1 = term ')'? '-' t2=term
 	{
-		$sExpr = "iload " + $t1.sTerm + "\n\tiload " + $t2.sTerm + "\n\tisub\n";
+		$sExpr = $t1.sTerm + "\n\t" + $t2.sTerm + "\n\tisub\n";
 	}
-	| term '-' m4=expr
+	| '('? term ')'? '-' m4=expr
 	{
-		$sExpr = "iload " + $term.sTerm + "\n\tiload " + varID.get($m4.sExpr) + "\n\tisub\n";
+		$sExpr = $term.sTerm + "\n\t" + varID.get($m4.sExpr) + "\n\tisub\n";
 	}
-	| NUM
+	| '('? NUM ')'?
 	{
 		$sExpr = "ldc " + $NUM.getText();
 	}
-	| term
+	| '('? term ')'?
 	{
-		$sExpr = "iload " + $term.sTerm;
+		$sExpr = $term.sTerm;
 	}
 	;
 
 repeatStmt returns [String sRpt]
     : 'repeat' expr '{' block '}'
     {
-    	$sRpt = "\n\n\tiload 0\n\tistore " + varNumber + "\n\t "+ $expr.sExpr + "\n\tistore " + (varNumber+1) + "\n\n\tloop_" + loop_counter + ":\n" + 
+    	$sRpt = "\n\n\tiload 0\n\tistore " + varNumber + "\n\t "+ $expr.sExpr + "\n\tistore " + (varNumber+1) + "\n\n\tloop_" + loop_counter + ":\n" +
     	$block.sBlock + "\n\tiinc " + varNumber + " 1\n\tiload " + varNumber + "\n\tiload " + (varNumber+1) + "\n\tif_icmplt loop_" + loop_counter;
     	loop_counter++;
     	varNumber += 2;
@@ -121,7 +121,7 @@ assignStmt returns [String sAssign]
     : 'let' ID '=' NUM
     {
     	int v = varNumber;
-    	
+
     	if(varID.get($ID.getText())!= null){
     		v = varID.get($ID.getText());
     	}
@@ -134,7 +134,7 @@ assignStmt returns [String sAssign]
     | 'let' ID '=' expr
     {
     	int v = varNumber;
-    	
+
     	if(varID.get($ID.getText())!= null){
     		v = varID.get($ID.getText());
     	}
@@ -147,25 +147,41 @@ assignStmt returns [String sAssign]
     ;
 
  term returns [String sTerm]
-	: factor '*' NUM
+	: NUM '*' factor
 	{
-		$sTerm = varID.get($factor.sFactor) + "\n\tldc " + $NUM.getText() + "\n\timul\n";
+	 $sTerm = "ldc " + $NUM.getText() + "\n\tiload " + varID.get($factor.sFactor) + "\n\timul\n";
+	}
+	| factor '*' NUM
+	{
+		$sTerm = "iload " + varID.get($factor.sFactor) + "\n\tldc " + $NUM.getText() + "\n\timul\n";
+	}
+	| f1 = factor '*' f2=factor
+	{
+		$sTerm = "iload " + varID.get($f1.sFactor) + "\n\tiload " + varID.get($f2.sFactor) + "\n\timul\n";
 	}
 	| factor '*' t1=term
 	{
-		$sTerm = varID.get($factor.sFactor) + "\n\tiload " + varID.get($t1.sTerm) + "\n\timul\n";
+		$sTerm = "iload " + varID.get($factor.sFactor) + "\n\tiload " + varID.get($t1.sTerm) + "\n\timul\n";
+	}
+	| NUM '/' factor
+	{
+		$sTerm = "ldc " + $NUM.getText() + "\n\tiload " + varID.get($factor.sFactor) + "\n\tidiv\n";
 	}
 	| factor '/' NUM
 	{
-		$sTerm = varID.get($factor.sFactor) + "\n\tldc " + $NUM.getText() + "\n\tidiv\n";
+		$sTerm = "iload " + varID.get($factor.sFactor) + "\n\tldc " + $NUM.getText() + "\n\tidiv\n";
+	}
+	| f3 = factor '/' f4 = factor
+	{
+		$sTerm = "iload " + varID.get($f3.sFactor) + "\n\tiload " + varID.get($f4.sFactor) + "\n\tidiv\n";
 	}
 	| factor '/' t2=term
 	{
-		$sTerm = varID.get($factor.sFactor) + "\n\tiload " + varID.get($t2.sTerm) + "\n\tidiv\n";
+		$sTerm = "iload " + varID.get($factor.sFactor) + "\n\tiload " + varID.get($t2.sTerm) + "\n\tidiv\n";
 	}
 	| factor
 	{
-		$sTerm = varID.get($factor.sFactor) + "";
+		$sTerm = "iload " + varID.get($factor.sFactor) + "";
 	}
 	;
 
