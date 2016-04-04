@@ -1,0 +1,9 @@
+let x = 10
+let y = 20
+print (x, x+1)
+let x = 0
+let z = y * 5
+repeat 5 {
+    print (y, x + 100)
+    let x = x + 1
+}

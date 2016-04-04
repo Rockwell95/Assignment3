@@ -11,7 +11,18 @@ grammar Simple;
  	public SimpleParser(String fileName) throws java.io.IOException {
 	    super(new CommonTokenStream(new SimpleLexer(new ANTLRFileStream(fileName))));
 	    _interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
-	    projectName = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.lastIndexOf('.'));
+	    if(fileName.lastIndexOf("/") == -1 && fileName.lastIndexOf('.') == -1){
+                projectName = fileName;
+	    }
+	    else if(fileName.lastIndexOf("/") == -1 && fileName.lastIndexOf('.') != -1){
+                projectName = fileName.substring(0, fileName.lastIndexOf('.'));
+            }
+      else if(fileName.lastIndexOf("/") != -1 && fileName.lastIndexOf('.') != -1){
+                projectName = fileName.substring(fileName.lastIndexOf("/") + 1);
+            }
+	    else{
+                projectName = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.lastIndexOf('.'));
+            }
 	}
 
   	public String getProjectName() {

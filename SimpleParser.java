@@ -90,7 +90,14 @@ public class SimpleParser extends Parser {
 	 	public SimpleParser(String fileName) throws java.io.IOException {
 		    super(new CommonTokenStream(new SimpleLexer(new ANTLRFileStream(fileName))));
 		    _interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
-		    projectName = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.lastIndexOf('.'));
+		    projectName = "foo";
+		    System.out.println(fileName.lastIndexOf("/"));
+		    if(fileName.lastIndexOf("/") < 0){
+	                projectName = fileName.substring(0, fileName.lastIndexOf('.'));
+		    }
+		    else{
+	                projectName = fileName.substring(fileName.lastIndexOf("/") + 1, fileName.lastIndexOf('.'));
+	            }
 		}
 
 	  	public String getProjectName() {
