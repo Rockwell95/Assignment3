@@ -1,0 +1,1 @@
+java -cp "/lib/antlr-4.5.2-complete.jar" org.antlr.v4.runtime.misc.TestRig $1 $2 $3
