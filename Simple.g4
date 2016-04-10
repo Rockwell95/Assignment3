@@ -17,7 +17,7 @@ grammar Simple;
 	    else if(fileName.lastIndexOf("/") == -1 && fileName.lastIndexOf('.') != -1){
                 projectName = fileName.substring(0, fileName.lastIndexOf('.'));
             }
-      else if(fileName.lastIndexOf("/") != -1 && fileName.lastIndexOf('.') != -1){
+		else if(fileName.lastIndexOf("/") != -1 && fileName.lastIndexOf('.') == -1){
                 projectName = fileName.substring(fileName.lastIndexOf("/") + 1);
             }
 	    else{
@@ -84,7 +84,7 @@ expr returns [String sExpr]
 repeatStmt returns [String sRpt]
     : 'repeat' expr '{' block '}'
     {
-    	$sRpt = "\n\n\tiload 0\n\tistore " + varNumber + "\n\t "+ $expr.sExpr + "\n\tistore " + (varNumber+1) + "\n\n\tloop_" + loop_counter + ":\n" +
+    	$sRpt = "\n\n\tldc 0\n\tistore " + varNumber + "\n\t "+ $expr.sExpr + "\n\tistore " + (varNumber+1) + "\n\n\tloop_" + loop_counter + ":\n" +
     	$block.sBlock + "\n\tiinc " + varNumber + " 1\n\tiload " + varNumber + "\n\tiload " + (varNumber+1) + "\n\tif_icmplt loop_" + loop_counter;
     	loop_counter++;
     	varNumber += 2;
